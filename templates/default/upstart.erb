@@ -1,0 +1,22 @@
+author "ContainerShip Developers <developers@containership.io>"
+description "ContainerShip Agent"
+
+env HOME=/root
+expect fork
+respawn
+limit nofile 65535 65535
+kill signal SIGSTOP
+
+<% if node['containership']['agent']['cidr'].empty? -%>
+pre-start script
+  echo -n "CS_CIDR=$(node ~/.containership/plugins/node_modules/containership.plugin.cloud/cluster_discovery.js)" > /tmp/cs_cidr
+end script
+<% end -%>
+
+script
+  <% if node['containership']['agent']['cidr'].empty? -%>
+  . /tmp/cs_cidr
+  export CS_CIDR
+  <% end -%>
+  exec containership agent <%= @agent_options %>
+end script
